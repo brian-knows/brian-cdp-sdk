@@ -1,0 +1,42 @@
+{
+  "name": "@brian-ai/cdp-sdk",
+  "version": "1.0.0",
+  "description": "Repository containing the code for the Brian + CDP SDK.",
+  "main": "./dist/index.js",
+  "exports": {
+    "import": "./dist/index.js",
+    "require": "./dist/index.cjs"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "test": "jest"
+  },
+  "keywords": [
+    "brian",
+    "ai",
+    "web3",
+    "typescript",
+    "javascript",
+    "sdk"
+  ],
+  "author": "Brian",
+  "license": "MIT",
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@types/bun": "latest",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@brian-ai/sdk": "^0.2.7",
+    "@coinbase/coinbase-sdk": "^0.8.0",
+    "dotenv": "^16.4.5",
+    "ky": "^1.5.0",
+    "viem": "^2.21.22"
+  }
+}
