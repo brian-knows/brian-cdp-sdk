@@ -10,6 +10,7 @@ import {
   WalletData,
 } from "@coinbase/coinbase-sdk";
 import { decodeFunctionData, erc20Abi, formatUnits } from "viem";
+import { BUNGEE_ROUTER_ABI, ENSO_ROUTER_ABI, LIFI_ROUTER_ABI } from "./utils";
 
 interface BrianCoinbaseSDKOptions {
   brianApiKey: string;
@@ -130,7 +131,7 @@ export class BrianCoinbaseSDK {
     const txHashes: (Transfer | ContractInvocation)[] = [];
 
     for (const transactionResult of brianResponse) {
-      const { action, data } = transactionResult;
+      const { action, data, solver } = transactionResult;
 
       if (action === "transfer") {
         const txStep = data.steps![0];
@@ -159,18 +160,67 @@ export class BrianCoinbaseSDK {
           txHashes.push(await erc20TransferTx.wait());
         }
       }
+      if (action === "swap") {
+        //check if there are any steps
+        const txStepsLength = data.steps!.length;
+        if (txStepsLength === 0) {
+          continue;
+        }
+        const approveNeeded = data.steps!.length > 1;
+        if (approveNeeded) {
+          //retrieve approve data
+          const { args, functionName } = decodeFunctionData({
+            abi: erc20Abi,
+            data: data.steps![0].data,
+          });
+          //make approve
+          const erc20ApproveTx = await this.currentWallet.invokeContract({
+            contractAddress: data.steps![0].to,
+            method: functionName,
+            abi: erc20Abi,
+            args,
+          });
+          txHashes.push(await erc20ApproveTx.wait());
+        }
+        //get swap solver
+        const swapSolver = solver;
+        //retrieve swap data
+        const { args, functionName } = decodeFunctionData({ 
+          abi: swapSolver === "Enso" ? ENSO_ROUTER_ABI : swapSolver === "Bungee" ? BUNGEE_ROUTER_ABI : LIFI_ROUTER_ABI,
+          data: data.steps![data.steps!.length - 1].data,
+        });
+       
+        //make swap
+        const swapTx = await this.currentWallet.invokeContract({
+          contractAddress: data.steps![data.steps!.length - 1].to,
+          method: functionName, 
+          abi: swapSolver === "Enso" ? ENSO_ROUTER_ABI : swapSolver === "Bungee" ? BUNGEE_ROUTER_ABI : LIFI_ROUTER_ABI,
+          args: args ?? [],
+        });
+        txHashes.push(await swapTx.wait());
+      }
+      if (action === "bridge") {
+        // TODO: implement bridge
+      }
+      if (action === "deposit") {
+        // TODO: implement deposit
+      }
+      if (action === "withdraw") {
+        // TODO: implement withdraw
+      }
+      if (action === "borrow") {
+        // TODO: implement borrow
+      }
+      if (action === "repay") {
+        // TODO: implement repay
+      }
+      if (action === "ensregistration") {
+        // TODO: implement ens registration
+      }
+      if (action === "ensrenewal") {
+        // TODO: implement ens renewal
+      }
     }
     return txHashes;
   }
 }
-
-/*ACTIONS:
-swap -> enso or bungee or lifi or symbiosis
-bridge -> bungee or lifi or synbiosis
-deposit -> enso or lido
-withdraw -> enso
-borrow -> aave
-repay -> aave
-ens registration -> ens registrar
-ens renewal -> ens registrar
-*/
