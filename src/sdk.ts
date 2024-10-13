@@ -163,3 +163,14 @@ export class BrianCoinbaseSDK {
     return txHashes;
   }
 }
+
+/*ACTIONS:
+swap -> enso or bungee or lifi or symbiosis
+bridge -> bungee or lifi or synbiosis
+deposit -> enso or lido
+withdraw -> enso
+borrow -> aave
+repay -> aave
+ens registration -> ens registrar
+ens renewal -> ens registrar
+*/
