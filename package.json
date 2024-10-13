@@ -33,7 +33,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@brian-ai/sdk": "^0.2.7",
+    "@brian-ai/sdk": "^0.2.9",
     "@coinbase/coinbase-sdk": "^0.8.0",
     "dotenv": "^16.4.5",
     "ky": "^1.5.0",

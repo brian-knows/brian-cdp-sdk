@@ -10,7 +10,15 @@ import {
   WalletData,
 } from "@coinbase/coinbase-sdk";
 import { decodeFunctionData, erc20Abi, formatUnits } from "viem";
-import { AAVE_V3_L1_POOL_ABI, AAVE_V3_L2_POOL_ABI, BUNGEE_ROUTER_ABI, ENS_REGISTRAR_CONTROLLER_ABI, ENSO_ROUTER_ABI, LIDO_ABI, LIFI_ROUTER_ABI } from "./utils";
+import {
+  AAVE_V3_L1_POOL_ABI,
+  AAVE_V3_L2_POOL_ABI,
+  BUNGEE_ROUTER_ABI,
+  ENS_REGISTRAR_CONTROLLER_ABI,
+  ENSO_ROUTER_ABI,
+  LIDO_ABI,
+  LIFI_ROUTER_ABI,
+} from "./utils";
 
 interface BrianCoinbaseSDKOptions {
   brianApiKey: string;
@@ -185,18 +193,28 @@ export class BrianCoinbaseSDK {
         //get swap solver
         const swapSolver = solver;
         //retrieve swap data
-        const { args, functionName } = decodeFunctionData({ 
-          abi: swapSolver === "Enso" ? ENSO_ROUTER_ABI : swapSolver === "Bungee" ? BUNGEE_ROUTER_ABI : LIFI_ROUTER_ABI,
+        const { args, functionName } = decodeFunctionData({
+          abi:
+            swapSolver === "Enso"
+              ? ENSO_ROUTER_ABI
+              : swapSolver === "Bungee"
+              ? BUNGEE_ROUTER_ABI
+              : LIFI_ROUTER_ABI,
           data: data.steps![data.steps!.length - 1].data,
         });
-       
+
         //make swap
         const swapTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
-          method: functionName, 
-          abi: swapSolver === "Enso" ? ENSO_ROUTER_ABI : swapSolver === "Bungee" ? BUNGEE_ROUTER_ABI : LIFI_ROUTER_ABI,
+          method: functionName,
+          abi:
+            swapSolver === "Enso"
+              ? ENSO_ROUTER_ABI
+              : swapSolver === "Bungee"
+              ? BUNGEE_ROUTER_ABI
+              : LIFI_ROUTER_ABI,
           args: args ?? [],
-          amount: Number(data.steps![data.steps!.length - 1].value)
+          amount: Number(data.steps![data.steps!.length - 1].value),
         });
         txHashes.push(await swapTx.wait());
       }
@@ -225,18 +243,28 @@ export class BrianCoinbaseSDK {
         //get bridge solver
         const bridgeSolver = solver;
         //retrieve bridge data
-        const { args, functionName } = decodeFunctionData({ 
-          abi: bridgeSolver === "Enso" ? ENSO_ROUTER_ABI : bridgeSolver === "Bungee" ? BUNGEE_ROUTER_ABI : LIFI_ROUTER_ABI,
+        const { args, functionName } = decodeFunctionData({
+          abi:
+            bridgeSolver === "Enso"
+              ? ENSO_ROUTER_ABI
+              : bridgeSolver === "Bungee"
+              ? BUNGEE_ROUTER_ABI
+              : LIFI_ROUTER_ABI,
           data: data.steps![data.steps!.length - 1].data,
         });
-       
+
         //make bridge
         const bridgeTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
-          method: functionName, 
-          abi: bridgeSolver === "Enso" ? ENSO_ROUTER_ABI : bridgeSolver === "Bungee" ? BUNGEE_ROUTER_ABI : LIFI_ROUTER_ABI,
+          method: functionName,
+          abi:
+            bridgeSolver === "Enso"
+              ? ENSO_ROUTER_ABI
+              : bridgeSolver === "Bungee"
+              ? BUNGEE_ROUTER_ABI
+              : LIFI_ROUTER_ABI,
           args: args ?? [],
-          amount: Number(data.steps![data.steps!.length - 1].value)
+          amount: Number(data.steps![data.steps!.length - 1].value),
         });
         txHashes.push(await bridgeTx.wait());
       }
@@ -265,18 +293,18 @@ export class BrianCoinbaseSDK {
         //get deposit solver
         const depositSolver = solver;
         //retrieve deposit data
-        const { args, functionName } = decodeFunctionData({ 
+        const { args, functionName } = decodeFunctionData({
           abi: depositSolver === "Enso" ? ENSO_ROUTER_ABI : LIDO_ABI,
           data: data.steps![data.steps!.length - 1].data,
         });
-       
+
         //make deposit
         const depositTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
-          method: functionName, 
+          method: functionName,
           abi: depositSolver === "Enso" ? ENSO_ROUTER_ABI : LIDO_ABI,
           args: args ?? [],
-          amount: Number(data.steps![data.steps!.length - 1].value)
+          amount: Number(data.steps![data.steps!.length - 1].value),
         });
         txHashes.push(await depositTx.wait());
       }
@@ -303,18 +331,18 @@ export class BrianCoinbaseSDK {
           txHashes.push(await erc20ApproveTx.wait());
         }
         //retrieve withdraw data
-        const { args, functionName } = decodeFunctionData({ 
+        const { args, functionName } = decodeFunctionData({
           abi: ENSO_ROUTER_ABI,
           data: data.steps![data.steps!.length - 1].data,
         });
-       
+
         //make withdraw
         const withdrawTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
-          method: functionName, 
+          method: functionName,
           abi: ENSO_ROUTER_ABI,
           args: args ?? [],
-          amount: Number(data.steps![data.steps!.length - 1].value)
+          amount: Number(data.steps![data.steps!.length - 1].value),
         });
         txHashes.push(await withdrawTx.wait());
       }
@@ -341,18 +369,24 @@ export class BrianCoinbaseSDK {
           txHashes.push(await erc20ApproveTx.wait());
         }
         //retrieve borrow data
-        const { args, functionName } = decodeFunctionData({ 
-          abi: data.steps![data.steps!.length - 1].chainId === 1 ? AAVE_V3_L1_POOL_ABI : AAVE_V3_L2_POOL_ABI,
+        const { args, functionName } = decodeFunctionData({
+          abi:
+            data.steps![data.steps!.length - 1].chainId === 1
+              ? AAVE_V3_L1_POOL_ABI
+              : AAVE_V3_L2_POOL_ABI,
           data: data.steps![data.steps!.length - 1].data,
         });
-       
+
         //make borrow
         const borrowTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
-          method: functionName, 
-          abi: data.steps![data.steps!.length - 1].chainId === 1 ? AAVE_V3_L1_POOL_ABI : AAVE_V3_L2_POOL_ABI,
+          method: functionName,
+          abi:
+            data.steps![data.steps!.length - 1].chainId === 1
+              ? AAVE_V3_L1_POOL_ABI
+              : AAVE_V3_L2_POOL_ABI,
           args: args ?? [],
-          amount: Number(data.steps![data.steps!.length - 1].value)
+          amount: Number(data.steps![data.steps!.length - 1].value),
         });
         txHashes.push(await borrowTx.wait());
       }
@@ -379,18 +413,24 @@ export class BrianCoinbaseSDK {
           txHashes.push(await erc20ApproveTx.wait());
         }
         //retrieve repay data
-        const { args, functionName } = decodeFunctionData({ 
-          abi: data.steps![data.steps!.length - 1].chainId === 1 ? AAVE_V3_L1_POOL_ABI : AAVE_V3_L2_POOL_ABI,
+        const { args, functionName } = decodeFunctionData({
+          abi:
+            data.steps![data.steps!.length - 1].chainId === 1
+              ? AAVE_V3_L1_POOL_ABI
+              : AAVE_V3_L2_POOL_ABI,
           data: data.steps![data.steps!.length - 1].data,
         });
-       
+
         //make repay
         const repayTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
-          method: functionName, 
-          abi: data.steps![data.steps!.length - 1].chainId === 1 ? AAVE_V3_L1_POOL_ABI : AAVE_V3_L2_POOL_ABI,
+          method: functionName,
+          abi:
+            data.steps![data.steps!.length - 1].chainId === 1
+              ? AAVE_V3_L1_POOL_ABI
+              : AAVE_V3_L2_POOL_ABI,
           args: args ?? [],
-          amount: Number(data.steps![data.steps!.length - 1].value)
+          amount: Number(data.steps![data.steps!.length - 1].value),
         });
         txHashes.push(await repayTx.wait());
       }
@@ -401,31 +441,33 @@ export class BrianCoinbaseSDK {
           continue;
         }
         //ens domain commitment
-        const { args, functionName } = decodeFunctionData({ 
+        const { args, functionName } = decodeFunctionData({
           abi: ENS_REGISTRAR_CONTROLLER_ABI,
           data: data.steps![0].data,
         });
         //make commitment
         const commitmentTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![0].to,
-          method: functionName, 
+          method: functionName,
           abi: ENS_REGISTRAR_CONTROLLER_ABI,
           args: args ?? [],
-          amount: Number(data.steps![0].value)
+          amount: Number(data.steps![0].value),
         });
         txHashes.push(await commitmentTx.wait());
         //ens registration
-        const { args: args2, functionName: functionName2 } = decodeFunctionData({ 
-          abi: ENS_REGISTRAR_CONTROLLER_ABI,
-          data: data.steps![1].data,
-        });
+        const { args: args2, functionName: functionName2 } = decodeFunctionData(
+          {
+            abi: ENS_REGISTRAR_CONTROLLER_ABI,
+            data: data.steps![1].data,
+          }
+        );
         //make registration
         const registrationTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![1].to,
-          method: functionName2, 
+          method: functionName2,
           abi: ENS_REGISTRAR_CONTROLLER_ABI,
           args: args2 ?? [],
-          amount: Number(data.steps![1].value)
+          amount: Number(data.steps![1].value),
         });
         txHashes.push(await registrationTx.wait());
       }
@@ -436,17 +478,17 @@ export class BrianCoinbaseSDK {
           continue;
         }
         //ens domain renewal
-        const { args, functionName } = decodeFunctionData({ 
+        const { args, functionName } = decodeFunctionData({
           abi: ENS_REGISTRAR_CONTROLLER_ABI,
           data: data.steps![0].data,
         });
         //make renewal
         const renewalTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![0].to,
-          method: functionName, 
+          method: functionName,
           abi: ENS_REGISTRAR_CONTROLLER_ABI,
           args: args ?? [],
-          amount: Number(data.steps![0].value)
+          amount: Number(data.steps![0].value),
         });
         txHashes.push(await renewalTx.wait());
       }
