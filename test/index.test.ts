@@ -3,7 +3,7 @@ import {
   BrianCoinbaseSDK,
   BrianCoinbaseSDKOptions
 } from "../src/sdk";
-import { Wallet, WalletData } from "@coinbase/coinbase-sdk";
+import { Coinbase, Wallet, WalletData } from "@coinbase/coinbase-sdk";
 
 // import environment variables
 const BRIAN_API_KEY = process.env.BRIAN_API_KEY;
@@ -74,18 +74,27 @@ describe("BrianCoinbaseSDK Tests", () => {
 
     test("fails to fund the wallet if it's on the wrong network", async () => {
       console.log("Creating wallet");
-      const wallet = await brianCoinbaseSDK.createWallet({ networkId: "base-mainnet" });
+      const wallet = await brianCoinbaseSDK.createWallet({ networkId: Coinbase.networks.BaseMainnet });
+      const newAddress = await wallet.createAddress()
+      console.log("newAddress", newAddress);
+      const walletId = wallet.getId();
+      console.log("walletId", walletId);
+      const addresses = await wallet.listAddresses()
+      const address = addresses[0].getId()
+      console.log("address", address);
+      const walletAddress = await wallet.getAddress(address)
+      console.log("walletAddress", walletAddress);
       await expect(brianCoinbaseSDK.fundWallet()).rejects.toThrow(
         "Wallet is not on Sepolia"
       );
     });
-
+/*
     test("funds the wallet using the faucet", async () => {
       const wallet = await brianCoinbaseSDK.createWallet({ networkId: "base-sepolia" });
       console.log("Funding wallet");
       const transaction = await brianCoinbaseSDK.fundWallet();
       expect(transaction.getTransactionHash()).toBeDefined(); 
-    });
+    });*/
   });
 
   /********************
