@@ -6308,27 +6308,4 @@ export function decodeFunctionDataForCdp(
   });
 
   return [result, functionName];
-  //   // Create an Interface instance from the ABI
-  //   const iface = new ethers.Interface(abi);
-
-  //   // Find the function fragment by name
-  //   const functionFragment = iface.getFunction(functionName);
-
-  //   // Check if functionFragment is not null before decoding
-  //   if (functionFragment) {
-  //     // Decode the data
-  //     const parsedData = iface.parseTransaction({ data: data });
-  //     const inputNames = parsedData!.fragment.inputs.map(
-  //       (param: ParamType) => param.name
-  //     );
-  //     console.log(inputNames, "inputNames");
-  //     // Build object with input names as keys and args as values
-  //     const result: Record<string, any> = {};
-  //     inputNames.forEach((name, index) => {
-  //       result[name] = args[index];
-  //     });
-  //     return result;
-  //   } else {
-  //     throw new Error(`Function ${functionName} not found in ABI`);
-  //   }
 }
