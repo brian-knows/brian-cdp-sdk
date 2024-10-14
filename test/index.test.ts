@@ -10,10 +10,6 @@ const BRIAN_API_KEY = process.env.BRIAN_API_KEY;
 const CDP_SDK_API_KEY_NAME = process.env.CDP_SDK_API_KEY_NAME;
 const CDP_SDK_API_KEY_SECRET = process.env.CDP_SDK_API_KEY_SECRET;
 const COINBASE_FILE_PATH = process.env.COINBASE_FILE_PATH || "test";
-console.log("BRIAN_API_KEY", BRIAN_API_KEY);
-console.log("CDP_SDK_API_KEY_NAME", CDP_SDK_API_KEY_NAME);
-console.log("CDP_SDK_API_KEY_SECRET", CDP_SDK_API_KEY_SECRET);
-console.log("COINBASE_FILE_PATH", COINBASE_FILE_PATH);
 
 if (!BRIAN_API_KEY || !CDP_SDK_API_KEY_NAME || !CDP_SDK_API_KEY_SECRET) {
   throw new Error("Required environment variables are missing");
@@ -73,12 +69,7 @@ describe("BrianCoinbaseSDK Tests", () => {
     });
 
     test("fails to fund the wallet if it's on the wrong network", async () => {
-      console.log("Creating wallet");
-      const wallet = await brianCoinbaseSDK.createWallet({ networkId: Coinbase.networks.BaseMainnet });
-      console.log(wallet.export())
-
-      const defaultAddress = await brianCoinbaseSDK.getDefaultAddress();
-      console.log("defaultAddress", defaultAddress);
+      await brianCoinbaseSDK.createWallet({ networkId: Coinbase.networks.BaseMainnet });
       await expect(brianCoinbaseSDK.fundWallet()).rejects.toThrow(
         "Wallet is not on Sepolia"
       );
@@ -95,35 +86,30 @@ describe("BrianCoinbaseSDK Tests", () => {
   /********************
    * TRANSACTIONS TESTS *
    ********************/
-  /*
+  
   describe("Transaction Handling", () => {
+    /*
     test("performs a valid transfer transaction", async () => {
-      await brianCoinbaseSDK.createWallet({ networkId: "base-sepolia" });
-      const txHashes = await brianCoinbaseSDK.transact("transfer 0.01 ETH to 0x123...");
+      //load wallet from env
+      const wallet = await brianCoinbaseSDK.importWallet({
+        walletId: process.env.CDP_TEST_WALLET_ID || "",
+        seed: process.env.CDP_TEST_WALLET_SEED || "",
+      });
+      //load recipient address from env
+      const recipientAddress = process.env.CDP_TEST_WALLET_ADDRESS || "";
+      const txHashes = await brianCoinbaseSDK.transact(`transfer 0.0001 ETH to ${recipientAddress} on Base`);
       expect(txHashes.length).toBeGreaterThan(0);
     }, TIMEOUT);
+    */
 
-    test("throws an error when no wallet is created before a transaction", async () => {
-      brianCoinbaseSDK = new BrianCoinbaseSDK(options); // Reset without wallet
-      await expect(brianCoinbaseSDK.transact("transfer 0.01 ETH")).rejects.toThrow(
-        "No wallet created"
-      );
-    });
-
-    test("handles an ERC-20 swap", async () => {
-      await brianCoinbaseSDK.createWallet({ networkId: "base-sepolia" });
-      const txHashes = await brianCoinbaseSDK.transact(
-        "swap 10 USDC for USDT on Polygon"
-      );
+    test("performs a valid swap transaction", async () => {
+      const wallet = await brianCoinbaseSDK.importWallet({
+        walletId: process.env.CDP_TEST_WALLET_ID || "",
+        seed: process.env.CDP_TEST_WALLET_SEED || "",
+      });
+      const txHashes = await brianCoinbaseSDK.transact(`swap 0.0001 ETH to USDC on Base`);
       expect(txHashes.length).toBeGreaterThan(0);
     }, TIMEOUT);
-
-    test("handles a cross-chain bridge transaction", async () => {
-      await brianCoinbaseSDK.createWallet({ networkId: "base-sepolia" });
-      const txHashes = await brianCoinbaseSDK.transact(
-        "bridge 5 USDC from Polygon to Ethereum"
-      );
-      expect(txHashes.length).toBeGreaterThan(0);
-    }, TIMEOUT);
-  });*/
+    
+  });
 });

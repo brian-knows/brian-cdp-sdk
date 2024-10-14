@@ -133,7 +133,7 @@ export class BrianCoinbaseSDK {
     }
     const brianResponse = await this.brianSDK.transact({
       prompt,
-      address: walletAddress.toString(),
+      address: walletAddress?.getId().toString(),
     });
 
     const txHashes: (Transfer | ContractInvocation)[] = [];
@@ -175,12 +175,15 @@ export class BrianCoinbaseSDK {
           continue;
         }
         const approveNeeded = data.steps!.length > 1;
+        console.log("approveNeeded", approveNeeded);
         if (approveNeeded) {
           //retrieve approve data
           const { args, functionName } = decodeFunctionData({
             abi: erc20Abi,
             data: data.steps![0].data,
           });
+          console.log("args", args);
+          console.log("functionName", functionName);
           //make approve
           const erc20ApproveTx = await this.currentWallet.invokeContract({
             contractAddress: data.steps![0].to,
@@ -192,6 +195,7 @@ export class BrianCoinbaseSDK {
         }
         //get swap solver
         const swapSolver = solver;
+        console.log("swapSolver", swapSolver);
         //retrieve swap data
         const { args, functionName } = decodeFunctionData({
           abi:
@@ -202,6 +206,10 @@ export class BrianCoinbaseSDK {
               : LIFI_ROUTER_ABI,
           data: data.steps![data.steps!.length - 1].data,
         });
+        console.log("args", args);
+        console.log("functionName", functionName);
+        console.log("Number(data.steps![data.steps!.length - 1].value)", Number(data.steps![data.steps!.length - 1].value));
+        console.log("data.steps![data.steps!.length - 1].to", data.steps![data.steps!.length - 1].to);
 
         //make swap
         const swapTx = await this.currentWallet.invokeContract({
