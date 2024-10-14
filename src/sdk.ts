@@ -9,7 +9,7 @@ import {
   WalletCreateOptions,
   WalletData,
 } from "@coinbase/coinbase-sdk";
-import { decodeFunctionData, erc20Abi, formatUnits, parseTransaction } from "viem";
+import { decodeFunctionData, erc20Abi, formatUnits } from "viem";
 import {
   AAVE_V3_L1_POOL_ABI,
   AAVE_V3_L2_POOL_ABI,
@@ -176,58 +176,42 @@ export class BrianCoinbaseSDK {
           continue;
         }
         const approveNeeded = data.steps!.length > 1;
-        console.log("approveNeeded", approveNeeded);
+
         if (approveNeeded) {
-          //retrieve approve data
-          const { args, functionName } = decodeFunctionData({
-            abi: erc20Abi,
-            data: data.steps![0].data,
-          });
-          console.log("args", args);
-          console.log("functionName", functionName);
+          const [decodedData, functionName] = decodeFunctionDataForCdp(
+            erc20Abi,
+            data.steps![0].data
+          );
           //make approve
           const erc20ApproveTx = await this.currentWallet.invokeContract({
             contractAddress: data.steps![0].to,
             method: functionName,
             abi: erc20Abi,
-            args,
+            args: decodedData,
           });
           txHashes.push(await erc20ApproveTx.wait());
         }
-        //get swap solver
-        const swapSolver = solver;
-        console.log("swapSolver", swapSolver);
         //retrieve swap data
         const solverAbi =
-          swapSolver === "Enso"
+          solver === "Enso"
             ? ENSO_ROUTER_ABI
-            : swapSolver === "Bungee"
+            : solver === "Bungee"
             ? BUNGEE_ROUTER_ABI
             : LIFI_ROUTER_ABI;
-        const { args, functionName } = decodeFunctionData({
-          abi: solverAbi,
-          data: data.steps![data.steps!.length - 1].data,
-        });
 
-        const stringifiedArgs = args!.map((arg) =>
-          typeof arg === "bigint" ? arg.toString() : arg
-        );
         //decode data according to CDP sdk
-        const decodedData = decodeFunctionDataForCdp(
+        const [decodedData, functionName] = decodeFunctionDataForCdp(
           solverAbi,
-          functionName,
-          data.steps![data.steps!.length - 1].data,
-          stringifiedArgs
+          data.steps![data.steps!.length - 1].data
         );
- 
+
         //make swap
         const swapTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
           method: functionName,
           abi: solverAbi,
           args: decodedData,
-          // amount: BigInt(data.steps![data.steps!.length - 1].value),
-          amount: parseFloat(formatUnits(BigInt(data.steps![data.steps!.length - 1].value), 18)),
+          amount: BigInt(data.steps![data.steps!.length - 1].value),
         });
         txHashes.push(await swapTx.wait());
       }

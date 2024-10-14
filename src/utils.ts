@@ -1,3 +1,5 @@
+import { Abi, AbiFunction, decodeFunctionData } from "viem";
+
 // Swap/Bridge Routers
 export const ENSO_ROUTER_ABI = [
   {
@@ -6274,30 +6276,59 @@ export const AAVE_V3_L2_POOL_ENCODER_ABI = [
   },
 ] as const;
 
-import { ethers, ParamType } from 'ethers';
-export function decodeFunctionDataForCdp(abi: any, functionName: any, data: any, args: any) {
-  // Create an Interface instance from the ABI
-  const iface = new ethers.Interface(abi);
+export function decodeFunctionDataForCdp(
+  abi: Abi,
+  data: `0x${string}`
+): [Record<string, any>, string] {
+  const { args, functionName } = decodeFunctionData({ abi, data });
 
-  // Find the function fragment by name
-  const functionFragment = iface.getFunction(functionName);
-
-  // Check if functionFragment is not null before decoding
-  if (functionFragment) {
-
-    // Decode the data 
-    const parsedData = iface.parseTransaction({data: data});
-    const inputNames = parsedData!.fragment.inputs.map((param: ParamType) => param.name);
-    console.log(inputNames, 'inputNames');
-    // Build object with input names as keys and args as values
-    const result: Record<string, any> = {}; 
-    inputNames.forEach((name, index) => {
-      result[name] = args[index];
-    });
-    return result;
-  } else {
-    throw new Error(`Function ${functionName} not found in ABI`);
+  if (!args || args.length === 0) {
+    return [{}, functionName];
   }
 
-}
+  const abiFunction = abi
+    .filter((item) => item.type === "function")
+    .find((f: AbiFunction) => f.name === functionName);
 
+  if (!abiFunction) {
+    throw new Error("Function not found in ABI");
+  }
+
+  const inputs = abiFunction.inputs || [];
+
+  if (inputs.length === 0) {
+    return [{}, functionName];
+  }
+
+  const result: Record<string, any> = {};
+
+  inputs.forEach((input, index) => {
+    result[input.name!] =
+      typeof args[index] === "bigint" ? args[index].toString() : args[index];
+  });
+
+  return [result, functionName];
+  //   // Create an Interface instance from the ABI
+  //   const iface = new ethers.Interface(abi);
+
+  //   // Find the function fragment by name
+  //   const functionFragment = iface.getFunction(functionName);
+
+  //   // Check if functionFragment is not null before decoding
+  //   if (functionFragment) {
+  //     // Decode the data
+  //     const parsedData = iface.parseTransaction({ data: data });
+  //     const inputNames = parsedData!.fragment.inputs.map(
+  //       (param: ParamType) => param.name
+  //     );
+  //     console.log(inputNames, "inputNames");
+  //     // Build object with input names as keys and args as values
+  //     const result: Record<string, any> = {};
+  //     inputNames.forEach((name, index) => {
+  //       result[name] = args[index];
+  //     });
+  //     return result;
+  //   } else {
+  //     throw new Error(`Function ${functionName} not found in ABI`);
+  //   }
+}
