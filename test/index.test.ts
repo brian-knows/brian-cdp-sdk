@@ -107,7 +107,7 @@ describe("BrianCoinbaseSDK Tests", () => {
         walletId: process.env.CDP_TEST_WALLET_ID || "",
         seed: process.env.CDP_TEST_WALLET_SEED || "",
       });
-      const txHashes = await brianCoinbaseSDK.transact(`swap 0.0001 ETH to USDC on Base`);
+      const txHashes = await brianCoinbaseSDK.transact(`swap 0.0004 ETH to USDC on Base`);
       expect(txHashes.length).toBeGreaterThan(0);
     }, TIMEOUT);
     
