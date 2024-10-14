@@ -9,11 +9,12 @@ import {
   WalletCreateOptions,
   WalletData,
 } from "@coinbase/coinbase-sdk";
-import { decodeFunctionData, erc20Abi, formatUnits } from "viem";
+import { decodeFunctionData, erc20Abi, formatUnits, parseTransaction } from "viem";
 import {
   AAVE_V3_L1_POOL_ABI,
   AAVE_V3_L2_POOL_ABI,
   BUNGEE_ROUTER_ABI,
+  decodeFunctionDataForCdp,
   ENS_REGISTRAR_CONTROLLER_ABI,
   ENSO_ROUTER_ABI,
   LIDO_ABI,
@@ -207,29 +208,26 @@ export class BrianCoinbaseSDK {
           abi: solverAbi,
           data: data.steps![data.steps!.length - 1].data,
         });
+
         const stringifiedArgs = args!.map((arg) =>
           typeof arg === "bigint" ? arg.toString() : arg
         );
-        // console.log("stringifiedArgs", stringifiedArgs);
-
-        // console.log("args", args);
-        console.log("functionName", functionName);
-        console.log(
-          "Number(data.steps![data.steps!.length - 1].value)",
-          Number(data.steps![data.steps!.length - 1].value)
+        //decode data according to CDP sdk
+        const decodedData = decodeFunctionDataForCdp(
+          solverAbi,
+          functionName,
+          data.steps![data.steps!.length - 1].data,
+          stringifiedArgs
         );
-        console.log(
-          "data.steps![data.steps!.length - 1].to",
-          data.steps![data.steps!.length - 1].to
-        );
-
+ 
         //make swap
         const swapTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
           method: functionName,
           abi: solverAbi,
-          args: stringifiedArgs,
-          amount: BigInt(data.steps![data.steps!.length - 1].value),
+          args: decodedData,
+          // amount: BigInt(data.steps![data.steps!.length - 1].value),
+          amount: parseFloat(formatUnits(BigInt(data.steps![data.steps!.length - 1].value), 18)),
         });
         txHashes.push(await swapTx.wait());
       }
