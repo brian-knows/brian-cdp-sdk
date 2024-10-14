@@ -20,7 +20,7 @@ import {
   LIFI_ROUTER_ABI,
 } from "./utils";
 
-interface BrianCoinbaseSDKOptions {
+export interface BrianCoinbaseSDKOptions {
   brianApiKey: string;
   brianApiUrl?: string;
   coinbaseApiKeyName?: string;
