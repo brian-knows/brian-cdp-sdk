@@ -75,15 +75,10 @@ describe("BrianCoinbaseSDK Tests", () => {
     test("fails to fund the wallet if it's on the wrong network", async () => {
       console.log("Creating wallet");
       const wallet = await brianCoinbaseSDK.createWallet({ networkId: Coinbase.networks.BaseMainnet });
-      const newAddress = await wallet.createAddress()
-      console.log("newAddress", newAddress);
-      const walletId = wallet.getId();
-      console.log("walletId", walletId);
-      const addresses = await wallet.listAddresses()
-      const address = addresses[0].getId()
-      console.log("address", address);
-      const walletAddress = await wallet.getAddress(address)
-      console.log("walletAddress", walletAddress);
+      console.log(wallet.export())
+
+      const defaultAddress = await brianCoinbaseSDK.getDefaultAddress();
+      console.log("defaultAddress", defaultAddress);
       await expect(brianCoinbaseSDK.fundWallet()).rejects.toThrow(
         "Wallet is not on Sepolia"
       );
