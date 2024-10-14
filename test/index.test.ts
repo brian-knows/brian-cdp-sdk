@@ -71,18 +71,20 @@ describe("BrianCoinbaseSDK Tests", () => {
       const walletData = brianCoinbaseSDK.exportWallet();
       expect(walletData).not.toBeNull();
     });
-    
-    test("funds the wallet using the faucet", async () => {
-      await brianCoinbaseSDK.createWallet({ networkId: "base-sepolia" });
-      const transaction = await brianCoinbaseSDK.fundWallet();
-      expect(transaction).toHaveProperty("txHash");
-    });
 
     test("fails to fund the wallet if it's on the wrong network", async () => {
-      await brianCoinbaseSDK.createWallet({ networkId: "wrong-network" });
-      await expect(brianCoinbaseSDK.fundWallet()).rejects.toThrowError(
+      console.log("Creating wallet");
+      const wallet = await brianCoinbaseSDK.createWallet({ networkId: "base-mainnet" });
+      await expect(brianCoinbaseSDK.fundWallet()).rejects.toThrow(
         "Wallet is not on Sepolia"
       );
+    });
+
+    test("funds the wallet using the faucet", async () => {
+      const wallet = await brianCoinbaseSDK.createWallet({ networkId: "base-sepolia" });
+      console.log("Funding wallet");
+      const transaction = await brianCoinbaseSDK.fundWallet();
+      expect(transaction.getTransactionHash()).toBeDefined(); 
     });
   });
 
