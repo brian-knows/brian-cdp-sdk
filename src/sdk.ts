@@ -197,33 +197,37 @@ export class BrianCoinbaseSDK {
         const swapSolver = solver;
         console.log("swapSolver", swapSolver);
         //retrieve swap data
+        const solverAbi =
+          swapSolver === "Enso"
+            ? ENSO_ROUTER_ABI
+            : swapSolver === "Bungee"
+            ? BUNGEE_ROUTER_ABI
+            : LIFI_ROUTER_ABI;
         const { args, functionName } = decodeFunctionData({
-          abi:
-            swapSolver === "Enso"
-              ? ENSO_ROUTER_ABI
-              : swapSolver === "Bungee"
-              ? BUNGEE_ROUTER_ABI
-              : LIFI_ROUTER_ABI,
+          abi: solverAbi,
           data: data.steps![data.steps!.length - 1].data,
         });
-        const stringifiedArgs = args!.map(arg => typeof arg === 'bigint' ? arg.toString() : arg);
-        console.log("stringifiedArgs", stringifiedArgs);
+        const stringifiedArgs = args!.map((arg) =>
+          typeof arg === "bigint" ? arg.toString() : arg
+        );
+        // console.log("stringifiedArgs", stringifiedArgs);
 
-        console.log("args", args);
+        // console.log("args", args);
         console.log("functionName", functionName);
-        console.log("Number(data.steps![data.steps!.length - 1].value)", Number(data.steps![data.steps!.length - 1].value));
-        console.log("data.steps![data.steps!.length - 1].to", data.steps![data.steps!.length - 1].to);
+        console.log(
+          "Number(data.steps![data.steps!.length - 1].value)",
+          Number(data.steps![data.steps!.length - 1].value)
+        );
+        console.log(
+          "data.steps![data.steps!.length - 1].to",
+          data.steps![data.steps!.length - 1].to
+        );
 
         //make swap
         const swapTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
           method: functionName,
-          abi:
-            swapSolver === "Enso"
-              ? ENSO_ROUTER_ABI
-              : swapSolver === "Bungee"
-              ? BUNGEE_ROUTER_ABI
-              : LIFI_ROUTER_ABI,
+          abi: solverAbi,
           args: stringifiedArgs,
           amount: BigInt(data.steps![data.steps!.length - 1].value),
         });
