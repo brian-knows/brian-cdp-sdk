@@ -206,6 +206,9 @@ export class BrianCoinbaseSDK {
               : LIFI_ROUTER_ABI,
           data: data.steps![data.steps!.length - 1].data,
         });
+        const stringifiedArgs = args!.map(arg => typeof arg === 'bigint' ? arg.toString() : arg);
+        console.log("stringifiedArgs", stringifiedArgs);
+
         console.log("args", args);
         console.log("functionName", functionName);
         console.log("Number(data.steps![data.steps!.length - 1].value)", Number(data.steps![data.steps!.length - 1].value));
@@ -221,8 +224,8 @@ export class BrianCoinbaseSDK {
               : swapSolver === "Bungee"
               ? BUNGEE_ROUTER_ABI
               : LIFI_ROUTER_ABI,
-          args: args ?? [],
-          amount: Number(data.steps![data.steps!.length - 1].value),
+          args: stringifiedArgs,
+          amount: BigInt(data.steps![data.steps!.length - 1].value),
         });
         txHashes.push(await swapTx.wait());
       }
