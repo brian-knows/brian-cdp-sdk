@@ -209,7 +209,6 @@ export class BrianCoinbaseSDK {
           solverAbi,
           data.steps![data.steps!.length - 1].data
         );
-
         //make swap
         const swapTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
@@ -217,6 +216,7 @@ export class BrianCoinbaseSDK {
           abi: solverAbi,
           args: decodedData,
           amount: BigInt(data.steps![data.steps!.length - 1].value),
+          assetId: Coinbase.assets.Wei,
         });
         txHashes.push(await swapTx.wait());
       }
