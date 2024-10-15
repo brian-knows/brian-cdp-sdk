@@ -107,11 +107,16 @@ export class BrianCoinbaseSDK {
     return this.currentWallet.saveSeed(filePath, encrypt);
   }
 
-  async getDefaultAddress(): Promise<WalletAddress | undefined> {
+  async getDefaultAddress(): Promise<WalletAddress> {
     if (!this.currentWallet) {
       throw new Error("No wallet created");
     }
     return this.currentWallet.getDefaultAddress();
+  }
+
+  async getAddress(): Promise<string> {
+    const walletAddress = await this.getDefaultAddress();
+    return walletAddress?.getId();
   }
 
   async fundWallet(): Promise<FaucetTransaction> {
