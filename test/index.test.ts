@@ -101,15 +101,47 @@ describe("BrianCoinbaseSDK Tests", () => {
       expect(txHashes.length).toBeGreaterThan(0);
     }, TIMEOUT);
     */
-
+    /*
     test("performs a valid swap transaction", async () => {
       const wallet = await brianCoinbaseSDK.importWallet({
         walletId: process.env.CDP_TEST_WALLET_ID || "",
         seed: process.env.CDP_TEST_WALLET_SEED || "",
       });
+      //export standard wallet
+      const walletData = brianCoinbaseSDK.getDefaultAddress();
+      const exportedWallet = (await walletData).export();
+      console.log(exportedWallet, "exported wallet");
       const txHashes = await brianCoinbaseSDK.transact(`swap 0.0004 ETH to USDC on Base`);
       expect(txHashes.length).toBeGreaterThan(0);
     }, TIMEOUT);
-    
+    */
+    /*
+    test("performs a valid deposit transaction", async () => {
+      const wallet = await brianCoinbaseSDK.importWallet({
+        walletId: process.env.CDP_TEST_WALLET_ID || "",
+        seed: process.env.CDP_TEST_WALLET_SEED || "",
+      });
+      //export standard wallet
+      const walletData = brianCoinbaseSDK.getDefaultAddress();
+      const exportedWallet = (await walletData).export();
+      console.log(exportedWallet, "exported wallet");
+      const txHashes = await brianCoinbaseSDK.transact(`deposit 2$ of eth on aave on Base`);
+      expect(txHashes.length).toBeGreaterThan(0);
+    }, TIMEOUT);
+    */
+    /*
+    test("performs a valid borrow transaction", async () => {
+      const wallet = await brianCoinbaseSDK.importWallet({
+        walletId: process.env.CDP_TEST_WALLET_ID || "",
+        seed: process.env.CDP_TEST_WALLET_SEED || "",
+      });
+      //export standard wallet
+      const walletData = brianCoinbaseSDK.getDefaultAddress();
+      const exportedWallet = (await walletData).export();
+      console.log(exportedWallet, "exported wallet");
+      const txHashes = await brianCoinbaseSDK.transact(`borrow 1 USDC from aave on Base`);
+      expect(txHashes.length).toBeGreaterThan(0);
+    }, TIMEOUT);
+    */
   });
 });

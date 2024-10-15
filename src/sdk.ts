@@ -348,7 +348,7 @@ export class BrianCoinbaseSDK {
         });
         txHashes.push(await withdrawTx.wait());
       }
-      if (action === "borrow") {
+      if (action === "AAVE Borrow") {
         //check if there are any steps
         const txStepsLength = data.steps!.length;
         if (txStepsLength === 0) {
@@ -391,7 +391,7 @@ export class BrianCoinbaseSDK {
         });
         txHashes.push(await borrowTx.wait());
       }
-      if (action === "repay") {
+      if (action === "AAVE Repay") {
         //check if there are any steps
         const txStepsLength = data.steps!.length;
         if (txStepsLength === 0) {
@@ -415,21 +415,25 @@ export class BrianCoinbaseSDK {
         }
         //decode data according to CDP sdk
         const [decodedData, functionName] = decodeFunctionDataForCdp(
-          ENSO_ROUTER_ABI,
+          data.steps![data.steps!.length - 1].chainId === 1
+            ? AAVE_V3_L1_POOL_ABI
+            : AAVE_V3_L2_POOL_ABI,
           data.steps![data.steps!.length - 1].data
         );
         //make repay
         const repayTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
           method: functionName,
-          abi: ENSO_ROUTER_ABI,
+          abi: data.steps![data.steps!.length - 1].chainId === 1
+          ? AAVE_V3_L1_POOL_ABI
+          : AAVE_V3_L2_POOL_ABI,
           args: decodedData,
           amount: BigInt(data.steps![data.steps!.length - 1].value),
           assetId: Coinbase.assets.Wei,
         });
         txHashes.push(await repayTx.wait());
       }
-      if (action === "ensregistration") {
+      if (action === "ENS Registration") {
         //check if there are any steps
         const txStepsLength = data.steps!.length;
         if (txStepsLength === 0) {
@@ -450,6 +454,8 @@ export class BrianCoinbaseSDK {
           assetId: Coinbase.assets.Wei,
         });
         txHashes.push(await commitmentTx.wait());
+        //wait 60 seconds for ens commitment to be made
+        await new Promise((resolve) => setTimeout(resolve, 60000));
         //ens registration
         const [decodedDataRegistration, functionNameRegistration] = decodeFunctionDataForCdp(
           ENS_REGISTRAR_CONTROLLER_ABI,
@@ -466,7 +472,7 @@ export class BrianCoinbaseSDK {
         });
         txHashes.push(await registrationTx.wait());
       }
-      if (action === "ensrenewal") {
+      if (action === "ENS Renewal") {
         //check if there are any steps
         const txStepsLength = data.steps!.length;
         if (txStepsLength === 0) {
