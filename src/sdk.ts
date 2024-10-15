@@ -9,7 +9,7 @@ import {
   WalletCreateOptions,
   WalletData,
 } from "@coinbase/coinbase-sdk";
-import { decodeFunctionData, erc20Abi, formatUnits } from "viem";
+import { erc20Abi } from "viem";
 import {
   AAVE_V3_L1_POOL_ABI,
   AAVE_V3_L2_POOL_ABI,
@@ -156,20 +156,20 @@ export class BrianCoinbaseSDK {
           // generate tx for ETH
           const ethTransferTx = await this.currentWallet.createTransfer({
             destination: txStep.to,
-            amount: parseFloat(formatUnits(BigInt(txStep.value), 18)),
-            assetId: Coinbase.assets.Eth,
+            amount: BigInt(txStep.value),
+            assetId: Coinbase.assets.Wei,
           });
           txHashes.push(await ethTransferTx.wait());
         } else {
-          const { args } = decodeFunctionData({
-            abi: erc20Abi,
-            data: txStep.data,
-          });
+          const [decodedData, functionName] = decodeFunctionDataForCdp(
+            erc20Abi,
+            txStep.data
+          );
           const erc20TransferTx = await this.currentWallet.invokeContract({
             contractAddress: txStep.to,
-            method: "transfer",
+            method: functionName,
             abi: erc20Abi,
-            args,
+            args: decodedData,
           });
           txHashes.push(await erc20TransferTx.wait());
         }
@@ -228,45 +228,44 @@ export class BrianCoinbaseSDK {
         }
         const approveNeeded = data.steps!.length > 1;
         if (approveNeeded) {
-          //retrieve approve data
-          const { args, functionName } = decodeFunctionData({
-            abi: erc20Abi,
-            data: data.steps![0].data,
-          });
+          //decode data according to CDP sdk
+          const [decodedData, functionName] = decodeFunctionDataForCdp(
+            erc20Abi,
+            data.steps![0].data
+          );
+
           //make approve
           const erc20ApproveTx = await this.currentWallet.invokeContract({
             contractAddress: data.steps![0].to,
             method: functionName,
             abi: erc20Abi,
-            args,
+            args: decodedData,
           });
           txHashes.push(await erc20ApproveTx.wait());
         }
         //get bridge solver
         const bridgeSolver = solver;
-        //retrieve bridge data
-        const { args, functionName } = decodeFunctionData({
-          abi:
-            bridgeSolver === "Enso"
-              ? ENSO_ROUTER_ABI
-              : bridgeSolver === "Bungee"
-              ? BUNGEE_ROUTER_ABI
-              : LIFI_ROUTER_ABI,
-          data: data.steps![data.steps!.length - 1].data,
-        });
+        //get solver abi
+        const solverAbi =
+          bridgeSolver === "Enso"
+            ? ENSO_ROUTER_ABI
+            : bridgeSolver === "Bungee"
+            ? BUNGEE_ROUTER_ABI
+            : LIFI_ROUTER_ABI;
+        //decode data according to CDP sdk
+        const [decodedData, functionName] = decodeFunctionDataForCdp(
+          solverAbi,
+          data.steps![data.steps!.length - 1].data
+        );
 
         //make bridge
         const bridgeTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
           method: functionName,
-          abi:
-            bridgeSolver === "Enso"
-              ? ENSO_ROUTER_ABI
-              : bridgeSolver === "Bungee"
-              ? BUNGEE_ROUTER_ABI
-              : LIFI_ROUTER_ABI,
-          args: args ?? [],
-          amount: Number(data.steps![data.steps!.length - 1].value),
+          abi: solverAbi,
+          args: decodedData,
+          amount: BigInt(data.steps![data.steps!.length - 1].value),
+          assetId: Coinbase.assets.Wei,
         });
         txHashes.push(await bridgeTx.wait());
       }
@@ -278,35 +277,36 @@ export class BrianCoinbaseSDK {
         }
         const approveNeeded = data.steps!.length > 1;
         if (approveNeeded) {
-          //retrieve approve data
-          const { args, functionName } = decodeFunctionData({
-            abi: erc20Abi,
-            data: data.steps![0].data,
-          });
+          //decode data according to CDP sdk
+          const [decodedData, functionName] = decodeFunctionDataForCdp(
+            erc20Abi,
+            data.steps![0].data
+          );
           //make approve
           const erc20ApproveTx = await this.currentWallet.invokeContract({
             contractAddress: data.steps![0].to,
             method: functionName,
             abi: erc20Abi,
-            args,
+            args: decodedData,
           });
           txHashes.push(await erc20ApproveTx.wait());
         }
         //get deposit solver
         const depositSolver = solver;
-        //retrieve deposit data
-        const { args, functionName } = decodeFunctionData({
-          abi: depositSolver === "Enso" ? ENSO_ROUTER_ABI : LIDO_ABI,
-          data: data.steps![data.steps!.length - 1].data,
-        });
+        //decode data according to CDP sdk
+        const [decodedData, functionName] = decodeFunctionDataForCdp(
+          depositSolver === "Enso" ? ENSO_ROUTER_ABI : LIDO_ABI,
+          data.steps![data.steps!.length - 1].data
+        );
 
         //make deposit
         const depositTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
           method: functionName,
           abi: depositSolver === "Enso" ? ENSO_ROUTER_ABI : LIDO_ABI,
-          args: args ?? [],
-          amount: Number(data.steps![data.steps!.length - 1].value),
+          args: decodedData,
+          amount: BigInt(data.steps![data.steps!.length - 1].value),
+          assetId: Coinbase.assets.Wei,
         });
         txHashes.push(await depositTx.wait());
       }
@@ -318,33 +318,33 @@ export class BrianCoinbaseSDK {
         }
         const approveNeeded = data.steps!.length > 1;
         if (approveNeeded) {
-          //retrieve approve data
-          const { args, functionName } = decodeFunctionData({
-            abi: erc20Abi,
-            data: data.steps![0].data,
-          });
+          //decode data according to CDP sdk
+          const [decodedData, functionName] = decodeFunctionDataForCdp(
+            erc20Abi,
+            data.steps![0].data
+          );
           //make approve
           const erc20ApproveTx = await this.currentWallet.invokeContract({
             contractAddress: data.steps![0].to,
             method: functionName,
             abi: erc20Abi,
-            args,
+            args: decodedData,
           });
           txHashes.push(await erc20ApproveTx.wait());
         }
-        //retrieve withdraw data
-        const { args, functionName } = decodeFunctionData({
-          abi: ENSO_ROUTER_ABI,
-          data: data.steps![data.steps!.length - 1].data,
-        });
-
+        //decode data according to CDP sdk
+        const [decodedData, functionName] = decodeFunctionDataForCdp(
+          ENSO_ROUTER_ABI,
+          data.steps![data.steps!.length - 1].data
+        );
         //make withdraw
         const withdrawTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
           method: functionName,
           abi: ENSO_ROUTER_ABI,
-          args: args ?? [],
-          amount: Number(data.steps![data.steps!.length - 1].value),
+          args: decodedData,
+          amount: BigInt(data.steps![data.steps!.length - 1].value),
+          assetId: Coinbase.assets.Wei,
         });
         txHashes.push(await withdrawTx.wait());
       }
@@ -356,29 +356,27 @@ export class BrianCoinbaseSDK {
         }
         const approveNeeded = data.steps!.length > 1;
         if (approveNeeded) {
-          //retrieve approve data
-          const { args, functionName } = decodeFunctionData({
-            abi: erc20Abi,
-            data: data.steps![0].data,
-          });
+          //decode data according to CDP sdk
+          const [decodedData, functionName] = decodeFunctionDataForCdp(
+            erc20Abi,
+            data.steps![0].data
+          );
           //make approve
           const erc20ApproveTx = await this.currentWallet.invokeContract({
             contractAddress: data.steps![0].to,
             method: functionName,
             abi: erc20Abi,
-            args,
+            args: decodedData,
           });
           txHashes.push(await erc20ApproveTx.wait());
         }
-        //retrieve borrow data
-        const { args, functionName } = decodeFunctionData({
-          abi:
-            data.steps![data.steps!.length - 1].chainId === 1
-              ? AAVE_V3_L1_POOL_ABI
-              : AAVE_V3_L2_POOL_ABI,
-          data: data.steps![data.steps!.length - 1].data,
-        });
-
+        //decode data according to CDP sdk
+        const [decodedData, functionName] = decodeFunctionDataForCdp(
+          data.steps![data.steps!.length - 1].chainId === 1
+            ? AAVE_V3_L1_POOL_ABI
+            : AAVE_V3_L2_POOL_ABI,
+          data.steps![data.steps!.length - 1].data
+        );
         //make borrow
         const borrowTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
@@ -387,8 +385,9 @@ export class BrianCoinbaseSDK {
             data.steps![data.steps!.length - 1].chainId === 1
               ? AAVE_V3_L1_POOL_ABI
               : AAVE_V3_L2_POOL_ABI,
-          args: args ?? [],
-          amount: Number(data.steps![data.steps!.length - 1].value),
+          args: decodedData,
+          amount: BigInt(data.steps![data.steps!.length - 1].value),
+          assetId: Coinbase.assets.Wei,
         });
         txHashes.push(await borrowTx.wait());
       }
@@ -400,39 +399,33 @@ export class BrianCoinbaseSDK {
         }
         const approveNeeded = data.steps!.length > 1;
         if (approveNeeded) {
-          //retrieve approve data
-          const { args, functionName } = decodeFunctionData({
-            abi: erc20Abi,
-            data: data.steps![0].data,
-          });
+          //decode data according to CDP sdk
+          const [decodedData, functionName] = decodeFunctionDataForCdp(
+            erc20Abi,
+            data.steps![0].data
+          );
           //make approve
           const erc20ApproveTx = await this.currentWallet.invokeContract({
             contractAddress: data.steps![0].to,
             method: functionName,
             abi: erc20Abi,
-            args,
+            args: decodedData,
           });
           txHashes.push(await erc20ApproveTx.wait());
         }
-        //retrieve repay data
-        const { args, functionName } = decodeFunctionData({
-          abi:
-            data.steps![data.steps!.length - 1].chainId === 1
-              ? AAVE_V3_L1_POOL_ABI
-              : AAVE_V3_L2_POOL_ABI,
-          data: data.steps![data.steps!.length - 1].data,
-        });
-
+        //decode data according to CDP sdk
+        const [decodedData, functionName] = decodeFunctionDataForCdp(
+          ENSO_ROUTER_ABI,
+          data.steps![data.steps!.length - 1].data
+        );
         //make repay
         const repayTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
           method: functionName,
-          abi:
-            data.steps![data.steps!.length - 1].chainId === 1
-              ? AAVE_V3_L1_POOL_ABI
-              : AAVE_V3_L2_POOL_ABI,
-          args: args ?? [],
-          amount: Number(data.steps![data.steps!.length - 1].value),
+          abi: ENSO_ROUTER_ABI,
+          args: decodedData,
+          amount: BigInt(data.steps![data.steps!.length - 1].value),
+          assetId: Coinbase.assets.Wei,
         });
         txHashes.push(await repayTx.wait());
       }
@@ -442,34 +435,34 @@ export class BrianCoinbaseSDK {
         if (txStepsLength === 0) {
           continue;
         }
-        //ens domain commitment
-        const { args, functionName } = decodeFunctionData({
-          abi: ENS_REGISTRAR_CONTROLLER_ABI,
-          data: data.steps![0].data,
-        });
+        //decode data according to CDP sdk
+        const [decodedDataCommitment, functionNameCommitment] = decodeFunctionDataForCdp(
+          ENS_REGISTRAR_CONTROLLER_ABI,
+          data.steps![0].data
+        );
         //make commitment
         const commitmentTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![0].to,
-          method: functionName,
+          method: functionNameCommitment,
           abi: ENS_REGISTRAR_CONTROLLER_ABI,
-          args: args ?? [],
-          amount: Number(data.steps![0].value),
+          args: decodedDataCommitment,
+          amount: BigInt(data.steps![0].value),
+          assetId: Coinbase.assets.Wei,
         });
         txHashes.push(await commitmentTx.wait());
         //ens registration
-        const { args: args2, functionName: functionName2 } = decodeFunctionData(
-          {
-            abi: ENS_REGISTRAR_CONTROLLER_ABI,
-            data: data.steps![1].data,
-          }
+        const [decodedDataRegistration, functionNameRegistration] = decodeFunctionDataForCdp(
+          ENS_REGISTRAR_CONTROLLER_ABI,
+          data.steps![1].data
         );
         //make registration
         const registrationTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![1].to,
-          method: functionName2,
+          method: functionNameRegistration,
           abi: ENS_REGISTRAR_CONTROLLER_ABI,
-          args: args2 ?? [],
-          amount: Number(data.steps![1].value),
+          args: decodedDataRegistration,
+          amount: BigInt(data.steps![1].value),
+          assetId: Coinbase.assets.Wei,
         });
         txHashes.push(await registrationTx.wait());
       }
@@ -479,18 +472,19 @@ export class BrianCoinbaseSDK {
         if (txStepsLength === 0) {
           continue;
         }
-        //ens domain renewal
-        const { args, functionName } = decodeFunctionData({
-          abi: ENS_REGISTRAR_CONTROLLER_ABI,
-          data: data.steps![0].data,
-        });
+        //decode data according to CDP sdk
+        const [decodedData, functionName] = decodeFunctionDataForCdp(
+          ENS_REGISTRAR_CONTROLLER_ABI,
+          data.steps![0].data
+        );
         //make renewal
         const renewalTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![0].to,
           method: functionName,
           abi: ENS_REGISTRAR_CONTROLLER_ABI,
-          args: args ?? [],
-          amount: Number(data.steps![0].value),
+          args: decodedData,
+          amount: BigInt(data.steps![0].value),
+          assetId: Coinbase.assets.Wei,
         });
         txHashes.push(await renewalTx.wait());
       }
