@@ -1,6 +1,6 @@
 {
   "name": "@brian-ai/cdp-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Repository containing the code for the Brian + CDP SDK.",
   "main": "./dist/index.js",
   "exports": {
