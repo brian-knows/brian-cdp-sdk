@@ -37,8 +37,8 @@ export interface BrianCoinbaseSDKOptions {
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 export class BrianCoinbaseSDK {
-  private readonly brianSDK;
-  private currentWallet: Wallet | null = null;
+  readonly brianSDK;
+  currentWallet: Wallet | null = null;
 
   constructor({
     brianApiKey,
@@ -424,9 +424,10 @@ export class BrianCoinbaseSDK {
         const repayTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![data.steps!.length - 1].to,
           method: functionName,
-          abi: data.steps![data.steps!.length - 1].chainId === 1
-          ? AAVE_V3_L1_POOL_ABI
-          : AAVE_V3_L2_POOL_ABI,
+          abi:
+            data.steps![data.steps!.length - 1].chainId === 1
+              ? AAVE_V3_L1_POOL_ABI
+              : AAVE_V3_L2_POOL_ABI,
           args: decodedData,
           amount: BigInt(data.steps![data.steps!.length - 1].value),
           assetId: Coinbase.assets.Wei,
@@ -440,10 +441,11 @@ export class BrianCoinbaseSDK {
           continue;
         }
         //decode data according to CDP sdk
-        const [decodedDataCommitment, functionNameCommitment] = decodeFunctionDataForCdp(
-          ENS_REGISTRAR_CONTROLLER_ABI,
-          data.steps![0].data
-        );
+        const [decodedDataCommitment, functionNameCommitment] =
+          decodeFunctionDataForCdp(
+            ENS_REGISTRAR_CONTROLLER_ABI,
+            data.steps![0].data
+          );
         //make commitment
         const commitmentTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![0].to,
@@ -457,10 +459,11 @@ export class BrianCoinbaseSDK {
         //wait 60 seconds for ens commitment to be made
         await new Promise((resolve) => setTimeout(resolve, 60000));
         //ens registration
-        const [decodedDataRegistration, functionNameRegistration] = decodeFunctionDataForCdp(
-          ENS_REGISTRAR_CONTROLLER_ABI,
-          data.steps![1].data
-        );
+        const [decodedDataRegistration, functionNameRegistration] =
+          decodeFunctionDataForCdp(
+            ENS_REGISTRAR_CONTROLLER_ABI,
+            data.steps![1].data
+          );
         //make registration
         const registrationTx = await this.currentWallet.invokeContract({
           contractAddress: data.steps![1].to,
