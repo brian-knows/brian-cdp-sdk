@@ -51,7 +51,7 @@ export class BrianCoinbaseSDK {
     if (!brianApiKey) {
       throw new Error("Brian API key is required");
     }
-    if ((!coinbaseApiKeyName && !coinbaseApiKeySecret) || !coinbaseFilePath) {
+    if ((!coinbaseApiKeyName || !coinbaseApiKeySecret) && !coinbaseFilePath) {
       throw new Error(
         "Coinbase API key name + secret, or file path are required"
       );
