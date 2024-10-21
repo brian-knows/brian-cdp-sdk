@@ -5808,8 +5808,6 @@ export function decodeFunctionDataForCdp(
   data: `0x${string}`
 ): [Record<string, any>, string] {
   const { args, functionName } = decodeFunctionData({ abi, data });
-  console.log(abi, "abi");
-  console.log(args, "args");
 
   if (!args || args.length === 0) {
     return [{}, functionName];
@@ -5832,8 +5830,15 @@ export function decodeFunctionDataForCdp(
   const result: Record<string, any> = {};
 
   inputs.forEach((input, index) => {
-    result[input.name!] =
-      typeof args[index] === "bigint" ? args[index].toString() : args[index];
+    if (typeof args[index] === "bigint") {
+      result[input.name!] = args[index].toString();
+    } else if (typeof args[index] === "object" && args[index] !== null) {
+      result[input.name!] = Object.keys(args[index] as object).map((key) =>
+        (args[index] as any)[key].toString()
+      );
+    } else {
+      result[input.name!] = args[index] as any;
+    }
   });
 
   return [result, functionName];
