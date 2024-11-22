@@ -26,7 +26,7 @@ npm install @brian-ai/cdp-sdk
 Here's a quick example of how to use the SDK:
 
 ```typescript
-import { BrianCoinbaseSDK } from "brian-coinbase-sdk";
+import { BrianCoinbaseSDK } from "@brian-ai/cdp-sdk";
 
 const sdk = new BrianCoinbaseSDK({
   brianApiKey: "your_brian_api_key",
@@ -34,9 +34,9 @@ const sdk = new BrianCoinbaseSDK({
   coinbaseApiKeySecret: "your_coinbase_api_key_secret",
 });
 // Create a wallet
-await sdk.createWallet({ networkId: "base-sepolia" });
-// Fund the wallet (only for Sepolia testnet)
-await sdk.fundWallet();
+await sdk.createWallet({ networkId: "base-mainnet" });
+// Fund your wallet in some way. The brian-ai/cdp-sdk does not support Base sepolia
+
 // Execute a transaction based on a prompt
 const txHashes = await sdk.transact("Swap 0.1 ETH for USDC");
 console.log("Transaction hashes:", txHashes);

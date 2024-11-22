@@ -102,17 +102,22 @@ describe("BrianCoinbaseSDK Tests", () => {
     test(
       "performs a valid transfer transaction",
       async () => {
-        //load wallet from env
-        const wallet = await brianCoinbaseSDK.importWallet({
-          walletId: process.env.CDP_TEST_WALLET_ID || "",
-          seed: process.env.CDP_TEST_WALLET_SEED || "",
-        });
-        //load recipient address from env
-        const recipientAddress = process.env.CDP_TEST_WALLET_ADDRESS || "";
-        const txHashes = await brianCoinbaseSDK.transact(
-          `Bridge 1 USDC to USDC from Base to Arbitrum`
-        );
-        expect(txHashes.length).toBeGreaterThan(0);
+        try {
+          //load wallet from env
+          const wallet = await brianCoinbaseSDK.importWallet({
+            walletId: process.env.CDP_TEST_WALLET_ID || "",
+            seed: process.env.CDP_TEST_WALLET_SEED || "",
+          });
+          //load recipient address from env
+          const recipientAddress = process.env.CDP_TEST_WALLET_ADDRESS || "";
+          const txHashes = await brianCoinbaseSDK.transact(
+            `swap 1$ ETH to USDCon Base`
+          );
+          expect(txHashes.length).toBeGreaterThan(0);
+        } catch (error) {
+          console.error('Transaction failed:', error);
+          throw error; // Re-throw to make the test fail
+        }
       },
       TIMEOUT
     );
