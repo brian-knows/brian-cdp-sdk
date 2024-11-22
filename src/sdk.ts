@@ -140,6 +140,7 @@ export class BrianCoinbaseSDK {
     const brianResponse = await this.brianSDK.transact({
       prompt,
       address: walletAddress?.getId().toString(),
+      chainId: "8453"
     });
 
     const txHashes: (Transfer | ContractInvocation)[] = [];
